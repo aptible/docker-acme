@@ -1,0 +1,47 @@
+#!/usr/bin/env python
+from __future__ import print_function
+import sys
+import os
+import json
+import tempfile
+import shutil
+
+import simp_le
+
+
+def main(cli_args):
+    if len(cli_args) != 4:
+        print("USAGE: acme-acquire-cert SERVER ACCOUNT_KEY ACCOUNT_EMAIL DOMAIN",
+               file=sys.stderr)
+        return 1
+
+    acme_server, account_key, account_email, domain = cli_args
+
+    work_dir = tempfile.mkdtemp()
+    try:
+        os.chdir(work_dir)
+        with open('account_key.json', 'w') as f:
+            f.write(account_key)
+
+        simp_le.main_with_exceptions([
+            '--server', acme_server,
+            '--email', account_email,
+            '-f', 'account_key.json',
+            '-f', 'fullchain.pem',
+            '-f', 'key.pem',
+            '-d', '{0}:/acme'.format(domain)
+            ])
+
+        ret = {}
+        for e in ['fullchain', 'key']:
+            with open("{0}.pem".format(e)) as f:
+                ret[e] = f.read().strip()
+
+        json.dump(ret, sys.stdout)
+    finally:
+        shutil.rmtree(work_dir)
+
+    return 0
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))
