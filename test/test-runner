@@ -1,0 +1,10 @@
+#!/bin/bash
+set -o errexit
+set -o nounset
+
+apk-install nodejs pwgen
+npm install -g localtunnel
+
+pip install pem
+
+exec bats /tmp/test
