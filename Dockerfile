@@ -16,6 +16,12 @@ RUN BUILD_DEPS="build-base openssl-dev libffi-dev python-dev git py-virtualenv p
  && apk del $BUILD_DEPS \
  && rm -r "$HOME/.cache/pip/"
 
+# Bump the ACME dep to 0.6.0 (simp_le normally references 0.5.0) to get
+# https://github.com/certbot/certbot/pull/2963. This ensures we can renew ACME
+# certificates even when new fields that our version of the library doesn't
+# understand are introduced.
+RUN "${SIMPLE_LE_DIR}/venv/bin/pip" install acme==0.6.0
+
 ENV PATH $SIMPLE_LE_DIR/venv/bin:$PATH
 ADD bin/acme-acquire-cert $SIMPLE_LE_DIR/venv/bin/
 
